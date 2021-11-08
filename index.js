@@ -7,10 +7,8 @@ const db = require("./dbConnectExec.js");
 const databaseConfig = require("./config.js");
 const auth = require("./middleware/authenticate");
 
-
 const app = express();
 app.use(express.json());
-
 
 app.use(cors());
 
@@ -24,22 +22,22 @@ app.get("/", (req, res) => {
   res.send("API is running!");
 });
 
-
-app.post("/comments", auth,async (req, res)=>{
-  try{
- 
+app.post("/comments", auth, async (req, res) => {
+  try {
     let PicturePK = req.body.PicturePK;
     let text = req.body.text;
     let date = req.body.date;
 
-    if(!PicturePK || !text || !date ){return res.status(400).send("bad request!")};
-  
-    text = text.replace("'","''");
-    date = date.replace("'","''");
-   
+    if (!PicturePK || !text || !date) {
+      return res.status(400).send("bad request!");
+    }
+
+    text = text.replace("'", "''");
+    date = date.replace("'", "''");
+
     // console.log("summary", summary);
     //console.log("here is the contact", req.contact);
-  
+
     let insertQuery = `INSERT INTO Comment(text, date, PicturePK, PersonPK)
     OUTPUT inserted.CommentPK, inserted.text, inserted.date, inserted.PicturePK
     VALUES('${text}', '${date}', '${PicturePK}', ${req.contact.PersonPK})`;
@@ -48,17 +46,15 @@ app.post("/comments", auth,async (req, res)=>{
     // console.log("inserted comment", insertedComment);
     // res.send("here is the repsonse");
     res.status(201).send(insertedComment[0]);
-  }
-  catch(err){
+  } catch (err) {
     console.log("error in POST /comments", err);
     res.status(500).send();
   }
-  })
-  
-  app.get("/person/me",auth,(req,res)=>{
-    res.send(req.contact)
-  })
+});
 
+app.get("/person/me", auth, (req, res) => {
+  res.send(req.contact);
+});
 
 app.post("/person/login", async (req, res) => {
   // console.log("/person/login called", req.body);
@@ -85,7 +81,7 @@ app.post("/person/login", async (req, res) => {
     return res.status(500).send();
   }
 
-   //console.log("result", result[0][0]);
+  //console.log("result", result[0][0]);
 
   if (!result[0][0]) {
     return res.status(401).send("Invalid user credentials");
@@ -104,7 +100,7 @@ app.post("/person/login", async (req, res) => {
   let token = jwt.sign({ pk: user.PersonPK }, databaseConfig.JWT, {
     expiresIn: "60 minutes",
   });
-   console.log("token", token);
+  console.log("token", token);
 
   //5. save token in DB and send response
 
@@ -139,7 +135,6 @@ app.post("/person", async (req, res) => {
   let email = req.body.email;
   let password = req.body.password;
 
-
   if (!firstName || !lastName || !username || !email || !password) {
     return res.status(400).send("Bad request");
   }
@@ -158,7 +153,7 @@ app.post("/person", async (req, res) => {
   if (existingUser[0][0]) {
     return res.status(409).send("Duplicate email");
   }
-console.log("reaching?")
+  console.log("reaching?");
   let hashedPassword = bcrypt.hashSync(password);
 
   let insertQuery = `INSERT INTO Person(firstName, lastName, username, email, password)
