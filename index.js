@@ -1,20 +1,63 @@
 const express = require("express");
+const cors = require("cors");
 const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken"); // add
+const jwt = require("jsonwebtoken");
 
 const db = require("./dbConnectExec.js");
-const databaseConfig = require("./config.js"); // add
+const databaseConfig = require("./config.js");
+const auth = require("./middleware/authenticate");
+
 
 const app = express();
 app.use(express.json());
 
-app.listen(5000, () => {
-  console.log(`app is running on port 5000`);
+
+app.use(cors());
+
+const PORT = process.env.PORT || 5000;
+
+app.listen(PORT, () => {
+  console.log(`app is running on port ${PORT}`);
 });
 
 app.get("/", (req, res) => {
   res.send("API is running!");
 });
+
+
+app.post("/comments", auth,async (req, res)=>{
+  try{
+ 
+    let PicturePK = req.body.PicturePK;
+    let text = req.body.text;
+    let date = req.body.date;
+
+    if(!PicturePK || !text || !date ){return res.status(400).send("bad request!")};
+  
+    text = text.replace("'","''");
+    date = date.replace("'","''");
+   
+    // console.log("summary", summary);
+    //console.log("here is the contact", req.contact);
+  
+    let insertQuery = `INSERT INTO Comment(text, date, PicturePK, PersonPK)
+    OUTPUT inserted.CommentPK, inserted.text, inserted.date, inserted.PicturePK
+    VALUES('${text}', '${date}', '${PicturePK}', ${req.contact.PersonPK})`;
+
+    let insertedComment = await db.executeQuery(insertQuery);
+    // console.log("inserted comment", insertedComment);
+    // res.send("here is the repsonse");
+    res.status(201).send(insertedComment[0]);
+  }
+  catch(err){
+    console.log("error in POST /comments", err);
+    res.status(500).send();
+  }
+  })
+  
+  app.get("/person/me",auth,(req,res)=>{
+    res.send(req.contact)
+  })
 
 
 app.post("/person/login", async (req, res) => {
