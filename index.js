@@ -22,6 +22,49 @@ app.get("/", (req, res) => {
   res.send("API is running!");
 });
 
+// Added Nov 10
+app.post("/person/logout", auth, (req, res) => {
+  let query = `UPDATE Person
+  SET token = NULL
+  WHERE PersonPK = ${req.contact.PersonPK}`;
+
+  db.executeQuery(query)
+    .then(() => {
+      res.status(200).send();
+    })
+    .catch((err) => {
+      console.log("error in POST /person/logout", err);
+      res.status(500).send();
+    });
+});
+
+//Needs implemented
+app.get("/comments/me", auth, async (req, res) => {
+  // Get the PersonPK
+  // Query the database for the persons comments
+  //send the users comments back to them
+
+  let myQuery = `Select *
+  From Comment
+  RIGHT JOIN Picture
+  ON Comment.PicturePK = Picture.PicturePK
+  Where Comment.PersonPK = '${req.contact.PersonPK}';`;
+
+  db.executeQuery(myQuery)
+    .then((result) => {
+      //console.log("result", result);
+      if (result[0]) {
+        res.send(result[0]);
+      } else {
+        res.status(404).send(`bad request`);
+      }
+    })
+    .catch((err) => {
+      console.log("Error in /comments/me", err);
+      res.status(500).send();
+    });
+});
+
 app.post("/comments", auth, async (req, res) => {
   try {
     let PicturePK = req.body.PicturePK;
