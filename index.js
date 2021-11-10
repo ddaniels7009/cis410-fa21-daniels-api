@@ -22,7 +22,6 @@ app.get("/", (req, res) => {
   res.send("API is running!");
 });
 
-// Added Nov 10
 app.post("/person/logout", auth, (req, res) => {
   let query = `UPDATE Person
   SET token = NULL
@@ -38,7 +37,6 @@ app.post("/person/logout", auth, (req, res) => {
     });
 });
 
-//Needs implemented
 app.get("/comments/me", auth, async (req, res) => {
   // Get the PersonPK
   // Query the database for the persons comments
@@ -52,7 +50,6 @@ app.get("/comments/me", auth, async (req, res) => {
 
   db.executeQuery(myQuery)
     .then((result) => {
-      //console.log("result", result);
       if (result[0]) {
         res.send(result[0]);
       } else {
@@ -78,16 +75,12 @@ app.post("/comments", auth, async (req, res) => {
     text = text.replace("'", "''");
     date = date.replace("'", "''");
 
-    // console.log("summary", summary);
-    //console.log("here is the contact", req.contact);
-
     let insertQuery = `INSERT INTO Comment(text, date, PicturePK, PersonPK)
     OUTPUT inserted.CommentPK, inserted.text, inserted.date, inserted.PicturePK
     VALUES('${text}', '${date}', '${PicturePK}', ${req.contact.PersonPK})`;
 
     let insertedComment = await db.executeQuery(insertQuery);
-    // console.log("inserted comment", insertedComment);
-    // res.send("here is the repsonse");
+
     res.status(201).send(insertedComment[0]);
   } catch (err) {
     console.log("error in POST /comments", err);
@@ -100,8 +93,6 @@ app.get("/person/me", auth, (req, res) => {
 });
 
 app.post("/person/login", async (req, res) => {
-  // console.log("/person/login called", req.body);
-
   //1. data validation
   let email = req.body.email;
   let password = req.body.password;
@@ -123,8 +114,6 @@ app.post("/person/login", async (req, res) => {
     console.log("error in /person/login", myError);
     return res.status(500).send();
   }
-
-  //console.log("result", result[0][0]);
 
   if (!result[0][0]) {
     return res.status(401).send("Invalid user credentials");
@@ -226,7 +215,6 @@ app.get("/pictures", (req, res) => {
       res.status(200).send(theResults);
     })
     .catch((myError) => {
-      //console.log(myError);
       res.status(500).send();
     });
 });
@@ -234,7 +222,6 @@ app.get("/pictures", (req, res) => {
 app.get("/picture/:pk", (req, res) => {
   let pk = req.params.pk;
 
-  //console.log(pk);
   let myQuery = `SELECT *
   FROM Picture
   LEFT JOIN SocialMediaPost
@@ -243,7 +230,6 @@ app.get("/picture/:pk", (req, res) => {
 
   db.executeQuery(myQuery)
     .then((result) => {
-      //console.log("result", result);
       if (result[0]) {
         res.send(result[0]);
       } else {
